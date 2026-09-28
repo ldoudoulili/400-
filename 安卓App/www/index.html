@@ -151,6 +151,27 @@
             width: 20px;
             height: 20px;
             flex-shrink: 0;
+            appearance: none;
+            -webkit-appearance: none;
+            border: 2px solid #94a3b8;
+            border-radius: 4px;
+            background: #fff;
+            position: relative;
+            cursor: pointer;
+        }
+        .checkbox-wrap input[type="checkbox"]:checked {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        .checkbox-wrap input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 14px;
+            line-height: 1;
         }
         .checkbox-wrap label { margin: 0; cursor: pointer; }
 
@@ -210,7 +231,32 @@
             cursor: pointer;
             padding: 4px 0;
         }
-        .filter-check input { width: 18px; height: 18px; }
+        .filter-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            appearance: none;
+            -webkit-appearance: none;
+            border: 2px solid #94a3b8;
+            border-radius: 4px;
+            background: #fff;
+            position: relative;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .filter-check input[type="checkbox"]:checked {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        .filter-check input[type="checkbox"]:checked::after {
+            content: '✔';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 13px;
+            line-height: 1;
+        }
         .filter-count {
             font-size: 12px;
             color: #64748b;
@@ -425,7 +471,7 @@
             <div class="btn-bar">
                 <button class="btn-add" id="submitBtn">添加记录</button>
                 <button class="btn-cancel" id="cancelBtn" style="display:none;">取消</button>
-                <button class="btn-export" id="exportBtn">导出CSV</button>
+                <button class="btn-export" id="exportBtn">复制记录</button>
             </div>
         </div>
 

@@ -217,33 +217,41 @@ function delRecord(id) {
     toast('已删除');
 }
 
-/* ---------- 导出 CSV ---------- */
-function exportCsv() {
-    if (recordList.length === 0) {
-        toast('没有记录可导出');
+/* ---------- 复制记录（复制当前筛选出的当天记录文本） ---------- */
+function copyText(text) {
+    // 用隐藏 textarea + execCommand，兼容 Capacitor WebView 环境
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { /* 忽略 */ }
+    document.body.removeChild(ta);
+    return ok;
+}
+
+function copyRecords() {
+    const list = getFilteredList();
+    const dateVal = document.getElementById('filterDate').value || getTodayStr();
+    if (list.length === 0) {
+        toast('该日期暂无记录可复制');
         return;
     }
-    // 按 fullTime 排序导出
-    const sorted = recordList.slice().sort((a, b) => (a.fullTime || '').localeCompare(b.fullTime || ''));
-    let csvContent = "\uFEFF来电电话,来电时间,事件描述,处理结论,是否需要跟进\n";
-    sorted.forEach(r => {
-        const tel = `"${(r.tel || "").replace(/"/g, '""')}"`;
-        const ft = `"${(r.fullTime || "").replace(/"/g, '""')}"`;
-        const de = `"${(r.desc || "").replace(/"/g, '""')}"`;
-        const re = `"${(r.result || "").replace(/"/g, '""')}"`;
-        const follow = r.needFollow ? "是" : "否";
-        csvContent += `${tel},${ft},${de},${re},"${follow}"\n`;
+    const lines = ['【400电话记录】' + dateVal, '电话\t时间\t描述\t结论\t需跟进'];
+    list.forEach(r => {
+        lines.push([r.tel || '', r.hm || '', r.desc || '', r.result || '', r.needFollow ? '是' : '否'].join('\t'));
     });
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `400电话记录_${getTodayStr()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast('CSV 已导出');
+    const text = lines.join('\n');
+    if (copyText(text)) {
+        toast('已复制 ' + list.length + ' 条记录');
+    } else {
+        toast('复制失败，请手动长按选择复制');
+    }
 }
 
 /* ============================================================
@@ -352,7 +360,7 @@ function init() {
     // 按钮事件
     document.getElementById('submitBtn').addEventListener('click', submitRecord);
     document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
-    document.getElementById('exportBtn').addEventListener('click', exportCsv);
+    document.getElementById('exportBtn').addEventListener('click', copyRecords);
     document.getElementById('pickCallBtn').addEventListener('click', onPickCall);
 
     // 筛选事件（实时）
