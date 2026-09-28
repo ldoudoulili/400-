@@ -16,6 +16,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -50,6 +51,7 @@ public class CallLogPlugin extends Plugin {
         requestPermissionForAlias("callLog", call, "permissionCallback");
     }
 
+    @PermissionCallback
     private void permissionCallback(PluginCall call) {
         JSObject ret = new JSObject();
         ret.put("granted", hasCallLogPermission());
