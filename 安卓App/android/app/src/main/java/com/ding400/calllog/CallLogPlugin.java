@@ -83,15 +83,18 @@ public class CallLogPlugin extends Plugin {
         // 只返回来电类型（incoming type = 1），因为这是记录接到的电话
         String selection = CallLog.Calls.TYPE + " = ?";
         String[] selectionArgs = new String[]{ String.valueOf(CallLog.Calls.INCOMING_TYPE) };
-        String sortOrder = CallLog.Calls.DATE + " DESC LIMIT " + limit;
+        String sortOrder = CallLog.Calls.DATE + " DESC";
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
 
         Cursor cursor = null;
+        int count = 0;
         try {
             cursor = resolver.query(uri, projection, selection, selectionArgs, sortOrder);
             if (cursor != null) {
                 while (cursor.moveToNext()) {
+                    if (count >= limit) break;
+                    count++;
                     String number = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
                     long dateMs = cursor.getLong(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE));
                     int type = cursor.getInt(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE));
