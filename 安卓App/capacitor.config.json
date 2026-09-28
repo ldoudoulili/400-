@@ -1,0 +1,8 @@
+{
+  "appId": "com.ding400.calllog",
+  "appName": "400电话记录",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

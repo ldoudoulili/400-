@@ -1,0 +1,19 @@
+# 依赖与生成物
+node_modules/
+
+# 安卓构建产物
+安卓App/android/app/build/
+安卓App/android/.gradle/
+安卓App/android/captures/
+*.apk
+*.aab
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# 发布与打包产物（可随时重新生成，无需提交）
+400维修记录.exe
+发布版/
+启动日志.txt
+.pack/sea-prep.blob

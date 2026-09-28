@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>400售后事件记录</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft Yahei", system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background-color: #edf2f7;
+            padding: 20px 16px 40px;
+        }
+        .container {
+            max-width: 1360px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 18px;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .stat-icon.blue   { background: #dbeafe; }
+        .stat-icon.orange { background: #ffedd5; }
+        .stat-icon.gray   { background: #e2e8f0; }
+        .stat-num {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ===== 通用卡片 ===== */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            padding: 20px 22px;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* ===== 表单 ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 18px;
+        }
+        .form-item.full {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #334155;
+            font-size: 13px;
+        }
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .checkbox-wrap input {
+            width: auto;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 14px;
+            transition: border 0.15s, box-shadow 0.15s;
+            background: #fff;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+        }
+        textarea {
+            min-height: 72px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .btn-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.15s, transform 0.05s;
+        }
+        button:hover { opacity: 0.9; }
+        button:active { transform: translateY(1px); }
+        .btn-add    { background: #2563eb; color: #fff; }
+        .btn-export { background: #059669; color: #fff; }
+        .btn-del    { background: #dc2626; color: #fff; padding: 4px 11px; font-size: 13px; }
+        .btn-edit   { background: #f59e0b; color: #fff; padding: 4px 11px; font-size: 13px; margin-right: 5px; }
+        .btn-cancel { background: #64748b; color: #fff; }
+        .btn-sync   { background: #0891b2; color: #fff; }
+
+        /* ===== 状态栏 ===== */
+        .status-bar {
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 14px;
+            min-height: 18px;
+        }
+        .status-bar.ok  { color: #059669; }
+        .status-bar.err { color: #dc2626; }
+        .editing-tip {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 14px;
+            border-radius: 7px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        /* ===== 筛选栏 ===== */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .filter-item label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+        .filter-item input[type="date"] {
+            width: 160px;
+        }
+        .filter-item input[type="text"] {
+            width: 240px;
+        }
+        .filter-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-bottom: 9px;
+            font-size: 13px;
+            color: #334155;
+            cursor: pointer;
+        }
+        .filter-check input { width: auto; }
+        .filter-spacer { flex: 1; }
+        .filter-count {
+            font-size: 13px;
+            color: #64748b;
+            padding-bottom: 9px;
+        }
+
+        /* ===== 表格 ===== */
+        .tag-follow {
+            display: inline-block;
+            background-color: #f97316;
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 14px;
+            vertical-align: top;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .col-tel    { width: 150px; }
+        .col-time   { width: 155px; }
+        .col-desc   { width: auto;  }
+        .col-result { width: auto;  }
+        .col-follow { width: 80px;  }
+        .col-op     { width: 130px; }
+        .op-cell { white-space: nowrap; }
+        th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        tbody tr {
+            transition: background 0.12s;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        tbody tr:hover {
+            background-color: #eff6ff;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #94a3b8;
+            padding: 44px 0;
+            font-size: 15px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 720px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .filter-item input[type="text"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📞 400售后事件记录</h1>
+        <div class="status-bar" id="statusBar">正在加载数据…</div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon blue">📋</div>
+                <div>
+                    <div class="stat-num" id="statToday">0</div>
+                    <div class="stat-label">当日记录</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">⏳</div>
+                <div>
+                    <div class="stat-num" id="statFollow">0</div>
+                    <div class="stat-label">需跟进（当日）</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon gray">📦</div>
+                <div>
+                    <div class="stat-num" id="statTotal">0</div>
+                    <div class="stat-label">累计记录</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 录入表单 -->
+        <div class="card">
+            <div class="card-title">事件录入</div>
+            <div class="editing-tip" id="editingTip">正在修改一条已有记录，点"保存修改"更新，或点"取消修改"放弃。</div>
+            <div class="form-grid">
+                <div class="form-item">
+                    <label>来电电话</label>
+                    <input id="tel" placeholder="输入来电号码" autocomplete="off">
+                </div>
+                <div class="form-item">
+                    <label>来电时刻（时:分）</label>
+                    <input id="callHM" placeholder="例：15:30（中文冒号自动转英文）" autocomplete="off">
+                </div>
+                <div class="form-item full">
+                    <label>事件描述</label>
+                    <textarea id="desc" placeholder="详细描述售后事件"></textarea>
+                </div>
+                <div class="form-item full">
+                    <label>处理结论</label>
+                    <textarea id="result" placeholder="填写处理结论"></textarea>
+                    <div class="checkbox-wrap">
+                        <input type="checkbox" id="needFollow">
+                        <label for="needFollow" style="margin:0;cursor:pointer;">需要继续跟进处理</label>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-bar">
+                <button class="btn-add" id="submitBtn">添加记录</button>
+                <button class="btn-cancel" id="cancelBtn" style="display:none;">取消修改</button>
+                <button class="btn-sync" id="syncBtn">同步</button>
+                <button class="btn-export" id="exportBtn">导出全部记录</button>
+            </div>
+        </div>
+
+        <!-- 记录列表 -->
+        <div class="card">
+            <div class="card-title">记录列表</div>
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>查看日期</label>
+                    <input type="date" id="filterDate">
+                </div>
+                <div class="filter-item">
+                    <label>搜索（电话/描述/结论）</label>
+                    <input type="text" id="searchInput" placeholder="输入关键词实时过滤">
+                </div>
+                <label class="filter-check">
+                    <input type="checkbox" id="onlyFollow"> 仅看需跟进
+                </label>
+                <div class="filter-spacer"></div>
+                <div class="filter-count" id="filterCount"></div>
+            </div>
+            <div class="table-wrap">
+                <div id="tableContainer"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+let recordList = [];
+let editingId = null;
+
+/* ---------- 工具函数 ---------- */
+function getTodayStr() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function getNowHM() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function normalizeColon(str) {
+    return String(str || '').replace(/：/g, ':').trim();
+}
+
+function normalizeRecords() {
+    recordList.forEach(r => {
+        if (r.hm) r.hm = normalizeColon(r.hm);
+        if (r.fullTime) r.fullTime = normalizeColon(r.fullTime);
+    });
+}
+
+function setStatus(msg, type) {
+    const bar = document.getElementById('statusBar');
+    bar.textContent = msg;
+    bar.className = 'status-bar' + (type ? ' ' + type : '');
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+/* ---------- 与服务器交互 ---------- */
+async function loadRecords() {
+    try {
+        const res = await fetch('/api/records', { cache: 'no-store' });
+        const data = await res.json();
+        recordList = (data.records || []).map(r => {
+            if (!r.id) r.id = genId();
+            return r;
+        });
+        normalizeRecords();
+        updateStats();
+        renderTable();
+        const today = getTodayStr();
+        const todayCount = recordList.filter(r => (r.fullTime || '').indexOf(today) === 0).length;
+        setStatus(`已读取数据，共 ${recordList.length} 条记录，今天 ${todayCount} 条`, 'ok');
+    } catch (e) {
+        setStatus('读取数据失败：请确认已通过「启动.bat」运行本程序。' + e.message, 'err');
+    }
+}
+
+async function saveStorage(silent) {
+    try {
+        normalizeRecords();
+        const res = await fetch('/api/records', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ records: recordList })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || '保存失败');
+        if (!silent) setStatus(`已保存到数据文件（共 ${recordList.length} 条）`, 'ok');
+        return true;
+    } catch (e) {
+        setStatus('保存失败：' + e.message, 'err');
+        return false;
+    }
+}
+
+/* ---------- 统计卡片 ---------- */
+function updateStats() {
+    const today = getTodayStr();
+    const todayList = recordList.filter(r => (r.fullTime || '').indexOf(today) === 0);
+    const followCount = todayList.filter(r => r.needFollow).length;
+    document.getElementById('statToday').textContent = todayList.length;
+    document.getElementById('statFollow').textContent = followCount;
+    document.getElementById('statTotal').textContent = recordList.length;
+}
+
+/* ---------- 表格渲染（按筛选条件） ---------- */
+function getFilteredList() {
+    const dateVal = document.getElementById('filterDate').value || getTodayStr();
+    const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+    const onlyFollow = document.getElementById('onlyFollow').checked;
+
+    let list = recordList.filter(r => (r.fullTime || '').indexOf(dateVal) === 0);
+    if (onlyFollow) list = list.filter(r => r.needFollow);
+    if (keyword) {
+        list = list.filter(r =>
+            (r.tel || '').toLowerCase().includes(keyword) ||
+            (r.desc || '').toLowerCase().includes(keyword) ||
+            (r.result || '').toLowerCase().includes(keyword)
+        );
+    }
+    // 按时间升序
+    list.sort((a, b) => (a.fullTime || '').localeCompare(b.fullTime || ''));
+    return list;
+}
+
+function renderTable() {
+    const dom = document.getElementById('tableContainer');
+    const list = getFilteredList();
+    const dateVal = document.getElementById('filterDate').value || getTodayStr();
+    const totalDay = recordList.filter(r => (r.fullTime || '').indexOf(dateVal) === 0).length;
+
+    document.getElementById('filterCount').textContent =
+        `显示 ${list.length} / ${totalDay} 条（${dateVal}）`;
+
+    if (list.length === 0) {
+        dom.innerHTML = `<div class="empty-tip">该日期暂无符合条件的记录</div>`;
+        return;
+    }
+
+    let html = `
+    <table>
+        <colgroup>
+            <col class="col-tel">
+            <col class="col-time">
+            <col class="col-desc">
+            <col class="col-result">
+            <col class="col-follow">
+            <col class="col-op">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>来电电话</th>
+                <th>来电时间</th>
+                <th>事件描述</th>
+                <th>处理结论</th>
+                <th>跟进</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+    list.forEach(item => {
+        const followTag = item.needFollow ? `<span class="tag-follow">需跟进</span>` : "";
+        html += `
+        <tr>
+            <td>${escapeHtml(item.tel || "")}</td>
+            <td>${escapeHtml(item.fullTime || "")}</td>
+            <td>${escapeHtml(item.desc || "")}</td>
+            <td>${escapeHtml(item.result || "")}</td>
+            <td>${followTag}</td>
+            <td class="op-cell">
+                <button class="btn-edit" data-edit="${item.id}">修改</button>
+                <button class="btn-del" data-del="${item.id}">删除</button>
+            </td>
+        </tr>
+        `;
+    });
+    html += `</tbody></table>`;
+    dom.innerHTML = html;
+}
+
+/* ---------- 表单操作 ---------- */
+function clearForm() {
+    document.getElementById('tel').value = '';
+    document.getElementById('callHM').value = getNowHM();
+    document.getElementById('desc').value = '';
+    document.getElementById('result').value = '';
+    document.getElementById('needFollow').checked = false;
+}
+
+async function submitRecord() {
+    const tel = document.getElementById('tel').value.trim();
+    const hm = normalizeColon(document.getElementById('callHM').value);
+    const desc = document.getElementById('desc').value.trim();
+    const result = document.getElementById('result').value.trim();
+    const needFollow = document.getElementById('needFollow').checked;
+
+    if (!tel) {
+        alert('请填写来电电话');
+        document.getElementById('tel').focus();
+        return;
+    }
+    const today = getTodayStr();
+    const fullTime = hm ? `${today} ${hm}` : today;
+
+    if (editingId) {
+        const rec = recordList.find(r => r.id === editingId);
+        if (rec) {
+            rec.tel = tel; rec.hm = hm; rec.fullTime = fullTime;
+            rec.desc = desc; rec.result = result; rec.needFollow = needFollow;
+        }
+        exitEditMode();
+    } else {
+        recordList.push({ id: genId(), tel, hm, fullTime, desc, result, needFollow });
+    }
+
+    await saveStorage();
+    clearForm();
+    updateStats();
+    renderTable();
+    document.getElementById('tel').focus();
+}
+
+function startEdit(id) {
+    const rec = recordList.find(r => r.id === id);
+    if (!rec) return;
+    editingId = id;
+    document.getElementById('tel').value = rec.tel || '';
+    document.getElementById('callHM').value = rec.hm || '';
+    document.getElementById('desc').value = rec.desc || '';
+    document.getElementById('result').value = rec.result || '';
+    document.getElementById('needFollow').checked = !!rec.needFollow;
+
+    document.getElementById('submitBtn').textContent = '保存修改';
+    document.getElementById('cancelBtn').style.display = '';
+    document.getElementById('editingTip').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function exitEditMode() {
+    editingId = null;
+    document.getElementById('submitBtn').textContent = '添加记录';
+    document.getElementById('cancelBtn').style.display = 'none';
+    document.getElementById('editingTip').style.display = 'none';
+}
+
+function cancelEdit() {
+    exitEditMode();
+    clearForm();
+}
+
+async function delRecord(id) {
+    if (!confirm('确定删除这条记录？')) return;
+    if (editingId === id) cancelEdit();
+    recordList = recordList.filter(r => r.id !== id);
+    await saveStorage();
+    updateStats();
+    renderTable();
+}
+
+/* ---------- 导出 CSV ---------- */
+function exportCsv() {
+    if (recordList.length === 0) {
+        alert('没有记录可导出');
+        return;
+    }
+    let csvContent = "\uFEFF来电电话,来电时间,事件描述,处理结论,是否需要跟进\n";
+    recordList.forEach(r => {
+        const tel = `"${(r.tel || "").replace(/"/g, '""')}"`;
+        const ft = `"${(r.fullTime || "").replace(/"/g, '""')}"`;
+        const de = `"${(r.desc || "").replace(/"/g, '""')}"`;
+        const re = `"${(r.result || "").replace(/"/g, '""')}"`;
+        const follow = r.needFollow ? "是" : "否";
+        csvContent += `${tel},${ft},${de},${re},"${follow}"\n`;
+    });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `400售后记录_${getTodayStr()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+/* ---------- 自动同步 + 手动同步 ---------- */
+const HALF_HOUR = 30 * 60 * 1000;
+let autoSyncTimer = null;
+
+function scheduleAutoSync() {
+    if (autoSyncTimer) clearInterval(autoSyncTimer);
+    autoSyncTimer = setInterval(() => {
+        saveStorage(true).then(ok => {
+            if (ok) {
+                const t = new Date().toLocaleTimeString('zh-CN');
+                setStatus(`已于 ${t} 自动同步数据（每 30 分钟一次）`, 'ok');
+            }
+        });
+    }, HALF_HOUR);
+}
+
+async function syncNow() {
+    const ok = await saveStorage(true);
+    scheduleAutoSync();
+    if (ok) {
+        const t = new Date().toLocaleTimeString('zh-CN');
+        setStatus(`已于 ${t} 手动同步数据，下次自动同步将在 30 分钟后`, 'ok');
+    }
+}
+
+/* ---------- 初始化 & 事件绑定 ---------- */
+function init() {
+    // 默认日期 = 今天，来电时刻 = 当前时间
+    document.getElementById('filterDate').value = getTodayStr();
+    document.getElementById('callHM').value = getNowHM();
+
+    // 按钮事件
+    document.getElementById('submitBtn').addEventListener('click', submitRecord);
+    document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
+    document.getElementById('syncBtn').addEventListener('click', syncNow);
+    document.getElementById('exportBtn').addEventListener('click', exportCsv);
+
+    // 筛选事件（实时）
+    document.getElementById('filterDate').addEventListener('change', renderTable);
+    document.getElementById('searchInput').addEventListener('input', renderTable);
+    document.getElementById('onlyFollow').addEventListener('change', renderTable);
+
+    // 表格内按钮（事件委托）
+    document.getElementById('tableContainer').addEventListener('click', e => {
+        const editId = e.target.getAttribute('data-edit');
+        const delId = e.target.getAttribute('data-del');
+        if (editId) startEdit(editId);
+        if (delId) delRecord(delId);
+    });
+
+    // Ctrl+Enter 快捷提交
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            submitRecord();
+        }
+    });
+
+    // 电话框回车跳到时刻框
+    document.getElementById('tel').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('callHM').focus();
+        }
+    });
+
+    scheduleAutoSync();
+    loadRecords();
+}
+
+/* ---------- 心跳 + 关闭通知 ---------- */
+setInterval(() => {
+    fetch('/api/heartbeat', { cache: 'no-store' }).catch(() => {});
+}, 4000);
+fetch('/api/heartbeat', { cache: 'no-store' }).catch(() => {});
+
+window.addEventListener('pagehide', () => {
+    try { navigator.sendBeacon('/api/shutdown'); } catch (e) {}
+});
+
+window.onload = init;
+</script>
+</body>
+</html>

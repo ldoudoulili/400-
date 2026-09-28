@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">400电话记录</string>
+    <string name="title_activity_main">400电话记录</string>
+    <string name="package_name">com.ding400.calllog</string>
+    <string name="custom_url_scheme">com.ding400.calllog</string>
+</resources>

@@ -1,0 +1,16 @@
+{
+  "name": "calllog-400-android",
+  "version": "1.0.0",
+  "description": "400电话维修记录 - 安卓离线版",
+  "scripts": {
+    "build": "echo 'no build step, static www'",
+    "cap:sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}

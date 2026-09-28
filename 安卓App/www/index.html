@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>400电话记录</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft Yahei", sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-size: 15px;
+            line-height: 1.5;
+            /* 安全区域 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* ===== 顶部标题栏 ===== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: #2563eb;
+            color: #fff;
+            padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .topbar h1 {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .container {
+            padding: 12px 12px 40px;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            padding: 12px 8px;
+            text-align: center;
+        }
+        .stat-num {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .stat-num.blue   { color: #2563eb; }
+        .stat-num.orange { color: #ea580c; }
+        .stat-num.gray   { color: #475569; }
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* ===== 卡片 ===== */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* ===== 从通话记录选择按钮 ===== */
+        .pick-call-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(22,163,74,0.3);
+            margin-bottom: 12px;
+        }
+        .pick-call-btn:active { transform: scale(0.98); }
+        .pick-call-btn.disabled {
+            background: #94a3b8;
+            box-shadow: none;
+        }
+
+        /* ===== 表单 ===== */
+        .form-item { margin-bottom: 12px; }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #334155;
+            font-size: 13px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fff;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .checkbox-wrap input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .checkbox-wrap label { margin: 0; cursor: pointer; }
+
+        /* ===== 按钮 ===== */
+        .btn-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            flex: 1;
+            min-width: 0;
+        }
+        button:active { opacity: 0.85; }
+        .btn-add     { background: #2563eb; color: #fff; }
+        .btn-cancel  { background: #64748b; color: #fff; flex: 0 0 auto; padding: 12px 14px; }
+        .btn-export  { background: #059669; color: #fff; }
+        .btn-edit    { background: #f59e0b; color: #fff; padding: 6px 12px; font-size: 13px; }
+        .btn-del     { background: #dc2626; color: #fff; padding: 6px 12px; font-size: 13px; }
+
+        .editing-tip {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        /* ===== 筛选栏 ===== */
+        .filter-bar { margin-bottom: 10px; }
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .filter-row > * { flex: 1; min-width: 0; }
+        .filter-row input[type="date"],
+        .filter-row input[type="text"] {
+            padding: 9px 10px;
+            font-size: 14px;
+        }
+        .filter-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #334155;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .filter-check input { width: 18px; height: 18px; }
+        .filter-count {
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+        }
+
+        /* ===== 记录卡片列表（移动端卡片式） ===== */
+        .record-list { display: flex; flex-direction: column; gap: 10px; }
+        .record-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .record-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .record-tel {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .record-time {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .record-row {
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+        .record-row .lbl {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+        .record-ops {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+        .tag-follow {
+            display: inline-block;
+            background: #f97316;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #94a3b8;
+            padding: 36px 0;
+            font-size: 14px;
+        }
+
+        /* ===== 通话记录选择面板（底部弹出） ===== */
+        .sheet-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 100;
+            display: none;
+        }
+        .sheet-mask.show { display: block; }
+        .sheet {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            background: #fff;
+            border-radius: 16px 16px 0 0;
+            z-index: 101;
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.25s ease;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .sheet.show { transform: translateY(0); }
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .sheet-header h2 { font-size: 16px; font-weight: 600; }
+        .sheet-close {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 22px;
+            padding: 4px 10px;
+            flex: 0 0 auto;
+        }
+        .sheet-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 8px 0;
+        }
+        .call-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+        }
+        .call-item:active { background: #eff6ff; }
+        .call-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .call-number {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .call-type {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .call-type.in  { background: #dcfce7; color: #15803d; }
+        .call-type.out { background: #dbeafe; color: #1d4ed8; }
+        .call-type.miss { background: #fee2e2; color: #b91c1c; }
+        .call-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .sheet-loading, .sheet-empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 30px 0;
+            font-size: 14px;
+        }
+
+        /* toast */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 80px;
+            transform: translateX(-50%);
+            background: rgba(30,41,59,0.92);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 200;
+            max-width: 80%;
+            text-align: center;
+            display: none;
+        }
+        .toast.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>📞 400电话记录</h1>
+    </div>
+
+    <div class="container">
+        <!-- 统计卡片 -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-num blue" id="statToday">0</div>
+                <div class="stat-label">当日记录</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num orange" id="statFollow">0</div>
+                <div class="stat-label">需跟进(当日)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num gray" id="statTotal">0</div>
+                <div class="stat-label">累计记录</div>
+            </div>
+        </div>
+
+        <!-- 从通话记录选择（核心新增） -->
+        <button class="pick-call-btn" id="pickCallBtn">📞 从通话记录选择</button>
+
+        <!-- 录入表单 -->
+        <div class="card">
+            <div class="card-title">事件录入</div>
+            <div class="editing-tip" id="editingTip">正在修改一条已有记录，点"保存修改"更新，或点"取消修改"放弃。</div>
+
+            <div class="form-item">
+                <label>来电电话</label>
+                <input id="tel" placeholder="输入来电号码" autocomplete="off" inputmode="tel">
+            </div>
+            <div class="form-item">
+                <label>来电时刻（时:分）</label>
+                <input id="callHM" placeholder="例：15:30" autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="form-item">
+                <label>事件描述</label>
+                <textarea id="desc" placeholder="详细描述售后事件"></textarea>
+            </div>
+            <div class="form-item">
+                <label>处理结论</label>
+                <textarea id="result" placeholder="填写处理结论"></textarea>
+                <div class="checkbox-wrap">
+                    <input type="checkbox" id="needFollow">
+                    <label for="needFollow">需要继续跟进处理</label>
+                </div>
+            </div>
+
+            <div class="btn-bar">
+                <button class="btn-add" id="submitBtn">添加记录</button>
+                <button class="btn-cancel" id="cancelBtn" style="display:none;">取消</button>
+                <button class="btn-export" id="exportBtn">导出CSV</button>
+            </div>
+        </div>
+
+        <!-- 记录列表 -->
+        <div class="card">
+            <div class="card-title">记录列表</div>
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <input type="date" id="filterDate">
+                    <input type="text" id="searchInput" placeholder="搜索电话/描述/结论">
+                </div>
+                <div class="filter-row" style="justify-content: space-between; align-items: center;">
+                    <label class="filter-check">
+                        <input type="checkbox" id="onlyFollow"> 仅看需跟进
+                    </label>
+                    <div class="filter-count" id="filterCount"></div>
+                </div>
+            </div>
+            <div id="recordList"></div>
+        </div>
+    </div>
+
+    <!-- 通话记录选择底部面板 -->
+    <div class="sheet-mask" id="sheetMask"></div>
+    <div class="sheet" id="sheet">
+        <div class="sheet-header">
+            <h2>选择最近来电</h2>
+            <button class="sheet-close" id="sheetClose">×</button>
+        </div>
+        <div class="sheet-body" id="sheetBody">
+            <div class="sheet-loading">正在加载通话记录…</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
